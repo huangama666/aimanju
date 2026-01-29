@@ -1,0 +1,697 @@
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+
+/**
+ * PDF导出工具类
+ * 使用html2canvas + jsPDF生成PDF，完美支持中文显示
+ * 
+ * 注意：为了确保中文正常显示，我们将HTML内容渲染为图片后嵌入PDF
+ */
+
+interface NovelExportData {
+  novel_title: string;
+  novel_content: string;
+  novel_type?: string;
+  chapters_data?: any;
+  characters_data?: any;
+  panels_data?: any;
+  scripts_data?: any;
+  costume_data?: any;
+  makeup_data?: any;
+  props_data?: any;
+  scene_data?: any;
+  overall_analysis_data?: any;
+}
+
+/**
+ * HTML转义函数
+ */
+function escapeHtml(text: string): string {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML.replace(/\n/g, '<br>');
+}
+
+/**
+ * 创建HTML内容
+ */
+function createHTMLContent(novel: NovelExportData): string {
+  let html = `
+    <div style="font-family: 'Microsoft YaHei', 'SimSun', 'Arial', sans-serif; padding: 40px; background: white; color: #333; line-height: 1.8;">
+      <!-- 封面 -->
+      <div style="text-align: center; padding: 100px 0; page-break-after: always;">
+        <h1 style="font-size: 48px; margin-bottom: 20px; color: #1a1a1a; font-weight: bold;">
+          ${escapeHtml(novel.novel_title || '未命名作品')}
+        </h1>
+        ${novel.novel_type ? `<p style="font-size: 24px; color: #666; margin-top: 20px;">类型：${escapeHtml(novel.novel_type)}</p>` : ''}
+        <p style="font-size: 18px; color: #999; margin-top: 40px;">
+          导出时间：${new Date().toLocaleString('zh-CN')}
+        </p>
+      </div>
+
+      <!-- 小说内容 -->
+      <div style="page-break-after: always;">
+        <h2 style="font-size: 32px; margin-bottom: 20px; color: #1a1a1a; border-bottom: 3px solid #FF5724; padding-bottom: 10px;">
+          小说内容
+        </h2>
+        <div style="font-size: 16px; text-align: justify; white-space: pre-wrap; word-wrap: break-word;">
+          ${escapeHtml(novel.novel_content)}
+        </div>
+      </div>
+  `;
+
+  // 添加章节
+  if (novel.chapters_data && Array.isArray(novel.chapters_data) && novel.chapters_data.length > 0) {
+    html += `
+      <div style="page-break-before: always;">
+        <h2 style="font-size: 32px; margin-bottom: 20px; color: #1a1a1a; border-bottom: 3px solid #FF5724; padding-bottom: 10px;">
+          章节详情
+        </h2>
+    `;
+    
+    novel.chapters_data.forEach((chapter: any, index: number) => {
+      html += `
+        <div style="margin-bottom: 40px; ${index > 0 ? 'page-break-before: always;' : ''}">
+          <h3 style="font-size: 24px; margin-bottom: 15px; color: #333;">
+            ${escapeHtml(chapter.title || `第${index + 1}章`)}
+          </h3>
+          <div style="font-size: 16px; text-align: justify; white-space: pre-wrap; word-wrap: break-word;">
+            ${escapeHtml(chapter.content || '')}
+          </div>
+        </div>
+      `;
+    });
+    
+    html += `</div>`;
+  }
+
+  // 添加角色信息
+  if (novel.characters_data && Array.isArray(novel.characters_data) && novel.characters_data.length > 0) {
+    html += `
+      <div style="page-break-before: always;">
+        <h2 style="font-size: 32px; margin-bottom: 20px; color: #1a1a1a; border-bottom: 3px solid #FF5724; padding-bottom: 10px;">
+          角色信息
+        </h2>
+    `;
+    
+    novel.characters_data.forEach((character: any) => {
+      html += `
+        <div style="margin-bottom: 30px; padding: 20px; background: #f9f9f9; border-radius: 8px;">
+          <h3 style="font-size: 20px; margin-bottom: 10px; color: #FF5724;">
+            ${escapeHtml(character.name || '未命名角色')}
+          </h3>
+          ${character.description ? `
+            <p style="margin: 10px 0;"><strong>描述：</strong>${escapeHtml(character.description)}</p>
+          ` : ''}
+          ${character.personality ? `
+            <p style="margin: 10px 0;"><strong>性格：</strong>${escapeHtml(character.personality)}</p>
+          ` : ''}
+          ${character.imageUrl ? `
+            <p style="margin: 10px 0; color: #666;"><strong>角色图片：</strong>${character.imageUrl}</p>
+          ` : ''}
+        </div>
+      `;
+    });
+    
+    html += `</div>`;
+  }
+
+  // 添加分镜图文
+  if (novel.panels_data && Array.isArray(novel.panels_data) && novel.panels_data.length > 0) {
+    html += `
+      <div style="page-break-before: always;">
+        <h2 style="font-size: 32px; margin-bottom: 20px; color: #1a1a1a; border-bottom: 3px solid #FF5724; padding-bottom: 10px;">
+          分镜图文
+        </h2>
+    `;
+    
+    novel.panels_data.forEach((panel: any, index: number) => {
+      html += `
+        <div style="margin-bottom: 30px; padding: 20px; background: #f9f9f9; border-radius: 8px;">
+          <h3 style="font-size: 18px; margin-bottom: 10px; color: #FF5724;">
+            分镜 ${index + 1}
+          </h3>
+          ${panel.description ? `
+            <p style="margin: 10px 0;"><strong>场景描述：</strong>${escapeHtml(panel.description)}</p>
+          ` : ''}
+          ${panel.dialogue ? `
+            <p style="margin: 10px 0;"><strong>对话：</strong>${escapeHtml(panel.dialogue)}</p>
+          ` : ''}
+          ${panel.imageUrl ? `
+            <p style="margin: 10px 0; color: #666;"><strong>分镜图片：</strong>${panel.imageUrl}</p>
+          ` : ''}
+        </div>
+      `;
+    });
+    
+    html += `</div>`;
+  }
+
+  // 添加剧本
+  if (novel.scripts_data && Array.isArray(novel.scripts_data) && novel.scripts_data.length > 0) {
+    html += `
+      <div style="page-break-before: always;">
+        <h2 style="font-size: 32px; margin-bottom: 20px; color: #1a1a1a; border-bottom: 3px solid #FF5724; padding-bottom: 10px;">
+          剧本内容
+        </h2>
+    `;
+    
+    novel.scripts_data.forEach((script: any, index: number) => {
+      html += `
+        <div style="margin-bottom: 30px; padding: 20px; background: #f9f9f9; border-radius: 8px;">
+          <h3 style="font-size: 18px; margin-bottom: 10px; color: #FF5724;">
+            场景 ${index + 1}${script.scene ? `: ${escapeHtml(script.scene)}` : ''}
+          </h3>
+          ${script.content ? `
+            <div style="margin: 10px 0; white-space: pre-wrap; word-wrap: break-word;">
+              ${escapeHtml(script.content)}
+            </div>
+          ` : ''}
+          ${script.characters && Array.isArray(script.characters) && script.characters.length > 0 ? `
+            <p style="margin: 10px 0;"><strong>角色：</strong>${script.characters.map((c: string) => escapeHtml(c)).join('、')}</p>
+          ` : ''}
+        </div>
+      `;
+    });
+    
+    html += `</div>`;
+  }
+
+  // 添加拍戏分析
+  const analysisData = [
+    { key: 'costume_data', title: '服装设计' },
+    { key: 'makeup_data', title: '化妆设计' },
+    { key: 'props_data', title: '道具设计' },
+    { key: 'scene_data', title: '场景设计' },
+  ];
+
+  analysisData.forEach(({ key, title }) => {
+    const data = (novel as any)[key];
+    if (data && (data.analysis || (data.items && data.items.length > 0))) {
+      html += `
+        <div style="page-break-before: always;">
+          <h2 style="font-size: 32px; margin-bottom: 20px; color: #1a1a1a; border-bottom: 3px solid #FF5724; padding-bottom: 10px;">
+            ${title}
+          </h2>
+          ${data.analysis ? `
+            <div style="margin-bottom: 20px; padding: 15px; background: #f0f8ff; border-left: 4px solid #FF5724;">
+              <strong>分析：</strong>${escapeHtml(data.analysis)}
+            </div>
+          ` : ''}
+          ${data.items && Array.isArray(data.items) && data.items.length > 0 ? `
+            <div>
+              ${data.items.map((item: any) => `
+                <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 8px;">
+                  <h3 style="font-size: 18px; margin-bottom: 10px; color: #FF5724;">
+                    ${escapeHtml(item.name || '未命名')}
+                  </h3>
+                  ${item.description ? `
+                    <p style="margin: 5px 0;">${escapeHtml(item.description)}</p>
+                  ` : ''}
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+  });
+
+  // 添加整体分析
+  if (novel.overall_analysis_data) {
+    html += `
+      <div style="page-break-before: always;">
+        <h2 style="font-size: 32px; margin-bottom: 20px; color: #1a1a1a; border-bottom: 3px solid #FF5724; padding-bottom: 10px;">
+          整体分析
+        </h2>
+        <div style="font-size: 16px; text-align: justify; white-space: pre-wrap; word-wrap: break-word; padding: 20px; background: #f0f8ff; border-left: 4px solid #FF5724;">
+          ${escapeHtml(novel.overall_analysis_data)}
+        </div>
+      </div>
+    `;
+  }
+
+  html += `</div>`;
+  return html;
+}
+
+/**
+ * 导出单个小说为PDF
+ */
+export async function exportNovelToPDF(novel: NovelExportData): Promise<void> {
+  try {
+    // 创建临时容器
+    const container = document.createElement('div');
+    container.style.position = 'absolute';
+    container.style.left = '-9999px';
+    container.style.top = '0';
+    container.style.width = '210mm'; // A4宽度
+    container.style.background = 'white';
+    document.body.appendChild(container);
+
+    // 生成HTML内容
+    container.innerHTML = createHTMLContent(novel);
+
+    // 等待渲染完成
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    // 使用html2canvas转换为图片
+    const canvas = await html2canvas(container, {
+      scale: 2, // 提高清晰度
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#ffffff',
+      windowWidth: container.scrollWidth,
+      windowHeight: container.scrollHeight,
+    });
+
+    // 移除临时容器
+    document.body.removeChild(container);
+
+    // 创建PDF
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4',
+    });
+
+    // 计算图片尺寸
+    const imgWidth = 210; // A4宽度（mm）
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    const pageHeight = 297; // A4高度（mm）
+
+    let heightLeft = imgHeight;
+    let position = 0;
+
+    // 将canvas转换为图片
+    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+
+    // 添加第一页
+    pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+
+    // 如果内容超过一页，添加更多页
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+    }
+
+    // 下载PDF
+    const fileName = `${novel.novel_title || '未命名作品'}_导出.pdf`;
+    pdf.save(fileName);
+  } catch (error) {
+    console.error('导出PDF失败:', error);
+    throw new Error('导出PDF时发生错误，请稍后重试');
+  }
+}
+
+/**
+ * 批量导出多个小说为PDF
+ */
+export async function exportMultipleNovelsToPDF(
+  novels: NovelExportData[]
+): Promise<void> {
+  for (const novel of novels) {
+    await exportNovelToPDF(novel);
+    // 添加延迟避免浏览器阻止多个下载
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  }
+}
+
+  // 1. 封面
+  content.push(
+    {
+      text: novel.novel_title || '未命名作品',
+      style: 'title',
+      alignment: 'center',
+      margin: [0, 100, 0, 20],
+    },
+    {
+      text: novel.novel_type ? `类型：${novel.novel_type}` : '',
+      style: 'subtitle',
+      alignment: 'center',
+      margin: [0, 0, 0, 50],
+    },
+    { text: '', pageBreak: 'after' }
+  );
+
+  // 2. 小说内容
+  if (novel.novel_content) {
+    content.push(
+      { text: '小说内容', style: 'header' },
+      { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 2, lineColor: '#FF5724' }], margin: [0, 5, 0, 15] },
+      { text: novel.novel_content, style: 'content', margin: [0, 0, 0, 20] }
+    );
+  }
+
+  // 3. 章节内容
+  if (novel.chapters_data && Array.isArray(novel.chapters_data) && novel.chapters_data.length > 0) {
+    content.push(
+      { text: '', pageBreak: 'before' },
+      { text: '章节详情', style: 'header' },
+      { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 2, lineColor: '#FF5724' }], margin: [0, 5, 0, 15] }
+    );
+
+    for (let i = 0; i < novel.chapters_data.length; i++) {
+      const chapter = novel.chapters_data[i];
+      content.push(
+        { text: `第${i + 1}章：${chapter.title || '未命名章节'}`, style: 'subheader', margin: [0, 10, 0, 10] },
+        { text: chapter.content || '', style: 'content', margin: [0, 0, 0, 15] }
+      );
+    }
+  }
+
+  // 4. 角色信息
+  if (novel.characters_data && Array.isArray(novel.characters_data) && novel.characters_data.length > 0) {
+    content.push(
+      { text: '', pageBreak: 'before' },
+      { text: '角色信息', style: 'header' },
+      { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 2, lineColor: '#FF5724' }], margin: [0, 5, 0, 15] }
+    );
+
+    for (const character of novel.characters_data) {
+      const characterContent: any[] = [
+        { text: character.name || '未命名角色', style: 'subheader', color: '#FF5724', margin: [0, 10, 0, 10] }
+      ];
+
+      if (character.description) {
+        characterContent.push(
+          { text: '角色描述：', style: 'label', margin: [0, 5, 0, 5] },
+          { text: character.description, style: 'content', margin: [0, 0, 0, 10] }
+        );
+      }
+
+      if (character.personality) {
+        characterContent.push(
+          { text: '性格特点：', style: 'label', margin: [0, 5, 0, 5] },
+          { text: character.personality, style: 'content', margin: [0, 0, 0, 10] }
+        );
+      }
+
+      // 加载角色图片
+      if (character.imageUrl) {
+        try {
+          const imageData = await imageUrlToBase64(character.imageUrl);
+          if (imageData) {
+            characterContent.push({
+              image: imageData,
+              width: 200,
+              margin: [0, 10, 0, 10],
+            });
+          }
+        } catch (error) {
+          characterContent.push({
+            text: `角色图片：${character.imageUrl}`,
+            style: 'imageLink',
+            margin: [0, 10, 0, 10],
+          });
+        }
+      }
+
+      content.push({
+        stack: characterContent,
+        margin: [0, 0, 0, 20],
+      });
+    }
+  }
+
+  // 5. 分镜图文
+  if (novel.panels_data && Array.isArray(novel.panels_data) && novel.panels_data.length > 0) {
+    content.push(
+      { text: '', pageBreak: 'before' },
+      { text: '分镜图文', style: 'header' },
+      { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 2, lineColor: '#FF5724' }], margin: [0, 5, 0, 15] }
+    );
+
+    for (let i = 0; i < novel.panels_data.length; i++) {
+      const panel = novel.panels_data[i];
+      const panelContent: any[] = [
+        { text: `分镜 ${i + 1}`, style: 'subheader', color: '#FF5724', margin: [0, 10, 0, 10] }
+      ];
+
+      if (panel.description) {
+        panelContent.push(
+          { text: '场景描述：', style: 'label', margin: [0, 5, 0, 5] },
+          { text: panel.description, style: 'content', margin: [0, 0, 0, 10] }
+        );
+      }
+
+      if (panel.dialogue) {
+        panelContent.push(
+          { text: '对话内容：', style: 'label', margin: [0, 5, 0, 5] },
+          { text: panel.dialogue, style: 'content', margin: [0, 0, 0, 10] }
+        );
+      }
+
+      // 加载分镜图片
+      if (panel.imageUrl) {
+        try {
+          const imageData = await imageUrlToBase64(panel.imageUrl);
+          if (imageData) {
+            panelContent.push({
+              image: imageData,
+              width: 300,
+              margin: [0, 10, 0, 10],
+            });
+          }
+        } catch (error) {
+          panelContent.push({
+            text: `分镜图片：${panel.imageUrl}`,
+            style: 'imageLink',
+            margin: [0, 10, 0, 10],
+          });
+        }
+      }
+
+      content.push({
+        stack: panelContent,
+        margin: [0, 0, 0, 20],
+      });
+    }
+  }
+
+  // 6. 剧本内容
+  if (novel.scripts_data && Array.isArray(novel.scripts_data) && novel.scripts_data.length > 0) {
+    content.push(
+      { text: '', pageBreak: 'before' },
+      { text: '剧本内容', style: 'header' },
+      { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 2, lineColor: '#FF5724' }], margin: [0, 5, 0, 15] }
+    );
+
+    for (let i = 0; i < novel.scripts_data.length; i++) {
+      const script = novel.scripts_data[i];
+      content.push(
+        {
+          text: `场景 ${i + 1}${script.scene ? `：${script.scene}` : ''}`,
+          style: 'subheader',
+          color: '#FF5724',
+          margin: [0, 10, 0, 10],
+        },
+        { text: script.content || '', style: 'content', margin: [0, 0, 0, 10] }
+      );
+
+      if (script.characters && Array.isArray(script.characters) && script.characters.length > 0) {
+        content.push({
+          text: `出场角色：${script.characters.join('、')}`,
+          style: 'label',
+          margin: [0, 5, 0, 15],
+        });
+      }
+    }
+  }
+
+  // 7. 拍戏分析 - 服装
+  if (novel.costume_data) {
+    content.push(
+      { text: '', pageBreak: 'before' },
+      { text: '服装分析', style: 'header' },
+      { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 2, lineColor: '#FF5724' }], margin: [0, 5, 0, 15] }
+    );
+
+    if (novel.costume_data.analysis) {
+      content.push({ text: novel.costume_data.analysis, style: 'content', margin: [0, 0, 0, 15] });
+    }
+
+    if (novel.costume_data.items && Array.isArray(novel.costume_data.items)) {
+      const items = novel.costume_data.items.map((item: any, index: number) => ({
+        text: [
+          { text: `${index + 1}. ${item.name || '服装'}`, bold: true },
+          { text: item.description ? `\n   ${item.description}` : '' },
+        ],
+        margin: [0, 5, 0, 5],
+      }));
+      content.push(...items);
+    }
+  }
+
+  // 8. 拍戏分析 - 化妆
+  if (novel.makeup_data) {
+    content.push(
+      { text: '', pageBreak: 'before' },
+      { text: '化妆分析', style: 'header' },
+      { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 2, lineColor: '#FF5724' }], margin: [0, 5, 0, 15] }
+    );
+
+    if (novel.makeup_data.analysis) {
+      content.push({ text: novel.makeup_data.analysis, style: 'content', margin: [0, 0, 0, 15] });
+    }
+
+    if (novel.makeup_data.items && Array.isArray(novel.makeup_data.items)) {
+      const items = novel.makeup_data.items.map((item: any, index: number) => ({
+        text: [
+          { text: `${index + 1}. ${item.name || '化妆'}`, bold: true },
+          { text: item.description ? `\n   ${item.description}` : '' },
+        ],
+        margin: [0, 5, 0, 5],
+      }));
+      content.push(...items);
+    }
+  }
+
+  // 9. 拍戏分析 - 道具
+  if (novel.props_data) {
+    content.push(
+      { text: '', pageBreak: 'before' },
+      { text: '道具分析', style: 'header' },
+      { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 2, lineColor: '#FF5724' }], margin: [0, 5, 0, 15] }
+    );
+
+    if (novel.props_data.analysis) {
+      content.push({ text: novel.props_data.analysis, style: 'content', margin: [0, 0, 0, 15] });
+    }
+
+    if (novel.props_data.items && Array.isArray(novel.props_data.items)) {
+      const items = novel.props_data.items.map((item: any, index: number) => ({
+        text: [
+          { text: `${index + 1}. ${item.name || '道具'}`, bold: true },
+          { text: item.description ? `\n   ${item.description}` : '' },
+        ],
+        margin: [0, 5, 0, 5],
+      }));
+      content.push(...items);
+    }
+  }
+
+  // 10. 拍戏分析 - 场景
+  if (novel.scene_data) {
+    content.push(
+      { text: '', pageBreak: 'before' },
+      { text: '场景分析', style: 'header' },
+      { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 2, lineColor: '#FF5724' }], margin: [0, 5, 0, 15] }
+    );
+
+    if (novel.scene_data.analysis) {
+      content.push({ text: novel.scene_data.analysis, style: 'content', margin: [0, 0, 0, 15] });
+    }
+
+    if (novel.scene_data.items && Array.isArray(novel.scene_data.items)) {
+      const items = novel.scene_data.items.map((item: any, index: number) => ({
+        text: [
+          { text: `${index + 1}. ${item.name || '场景'}`, bold: true },
+          { text: item.description ? `\n   ${item.description}` : '' },
+        ],
+        margin: [0, 5, 0, 5],
+      }));
+      content.push(...items);
+    }
+  }
+
+  // 11. 整体分析
+  if (novel.overall_analysis_data) {
+    content.push(
+      { text: '', pageBreak: 'before' },
+      { text: '整体分析', style: 'header' },
+      { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 2, lineColor: '#FF5724' }], margin: [0, 5, 0, 15] }
+    );
+
+    const analysisText =
+      typeof novel.overall_analysis_data === 'string'
+        ? novel.overall_analysis_data
+        : novel.overall_analysis_data.analysis || '';
+
+    content.push({ text: analysisText, style: 'content' });
+  }
+
+  // 文档定义
+  return {
+    content,
+    defaultStyle: {
+      font: 'Roboto',
+      fontSize: 11,
+      lineHeight: 1.5,
+    },
+    styles: {
+      title: {
+        fontSize: 28,
+        bold: true,
+        color: '#1a1a1a',
+      },
+      subtitle: {
+        fontSize: 14,
+        color: '#666666',
+      },
+      header: {
+        fontSize: 20,
+        bold: true,
+        color: '#1a1a1a',
+        margin: [0, 20, 0, 10],
+      },
+      subheader: {
+        fontSize: 16,
+        bold: true,
+        color: '#333333',
+      },
+      label: {
+        fontSize: 12,
+        bold: true,
+        color: '#666666',
+      },
+      content: {
+        fontSize: 11,
+        color: '#333333',
+        alignment: 'justify',
+      },
+      imageLink: {
+        fontSize: 10,
+        color: '#999999',
+        italics: true,
+      },
+    },
+    pageSize: 'A4',
+    pageMargins: [40, 60, 40, 60],
+  };
+}
+
+/**
+ * 导出小说为PDF（可编辑，支持图文）
+ */
+export async function exportNovelToPDF(novel: NovelExportData): Promise<void> {
+  try {
+    // 创建文档定义
+    const docDefinition = await createDocumentDefinition(novel);
+
+    // 生成PDF
+    const pdfDocGenerator = pdfMake.createPdf(docDefinition);
+
+    // 下载PDF
+    const fileName = `${novel.novel_title || '未命名作品'}_导出.pdf`;
+    pdfDocGenerator.download(fileName);
+  } catch (error) {
+    console.error('导出PDF失败:', error);
+    throw new Error('导出PDF时发生错误，请稍后重试');
+  }
+}
+
+/**
+ * 批量导出多个小说为PDF
+ */
+export async function exportMultipleNovelsToPDF(novels: NovelExportData[]): Promise<void> {
+  for (const novel of novels) {
+    await exportNovelToPDF(novel);
+    // 添加延迟避免浏览器阻止多个下载
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+  }
+}

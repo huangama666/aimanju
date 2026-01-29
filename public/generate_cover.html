@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>生成小说封面</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+    .info {
+      background: #e3f2fd;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+    .info p {
+      margin: 5px 0;
+    }
+    button {
+      background: #2196F3;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    button:hover {
+      background: #1976D2;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .log {
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 5px;
+      margin-top: 20px;
+      max-height: 400px;
+      overflow-y: auto;
+      font-family: monospace;
+      font-size: 14px;
+    }
+    .log-item {
+      margin: 5px 0;
+      padding: 5px;
+    }
+    .log-success {
+      color: #4CAF50;
+    }
+    .log-error {
+      color: #f44336;
+    }
+    .log-info {
+      color: #2196F3;
+    }
+    .result {
+      background: #e8f5e9;
+      padding: 15px;
+      border-radius: 5px;
+      margin-top: 20px;
+      display: none;
+    }
+    .result img {
+      max-width: 100%;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
+    .sql-code {
+      background: #263238;
+      color: #aed581;
+      padding: 15px;
+      border-radius: 5px;
+      margin-top: 10px;
+      overflow-x: auto;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎨 生成小说封面</h1>
+    
+    <div class="info">
+      <p><strong>小说ID:</strong> ed703416-8c62-47c8-ab7f-6569a6ba56f9</p>
+      <p><strong>小说标题:</strong> 《签到修仙：三年杂役逆天成神》</p>
+      <p><strong>提示词:</strong> 小说封面设计，标题：签到修仙：三年杂役逆天成神，玄幻，国漫风格，精美插画，高质量，专业设计，书籍封面，竖版构图，9:16</p>
+    </div>
+
+    <button id="generateBtn" onclick="generateCover()">开始生成封面</button>
+
+    <div class="log" id="log"></div>
+
+    <div class="result" id="result">
+      <h3>✅ 封面生成成功！</h3>
+      <p><strong>图片URL:</strong> <span id="imageUrl"></span></p>
+      <img id="coverImage" src="" alt="封面预览" />
+      <div class="sql-code" id="sqlCode"></div>
+    </div>
+  </div>
+
+  <script>
+    const APP_ID = 'app-6r71zzjmv5kx';
+    const NOVEL_ID = 'ed703416-8c62-47c8-ab7f-6569a6ba56f9';
+    const PROMPT = '小说封面设计，标题：签到修仙：三年杂役逆天成神，玄幻，国漫风格，精美插画，高质量，专业设计，书籍封面，竖版构图，9:16';
+
+    function addLog(message, type = 'info') {
+      const log = document.getElementById('log');
+      const logItem = document.createElement('div');
+      logItem.className = `log-item log-${type}`;
+      logItem.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+      log.appendChild(logItem);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    async function submitCoverTask(prompt) {
+      addLog('📝 提交封面生成任务...', 'info');
+      addLog(`提示词: ${prompt}`, 'info');
+
+      const response = await fetch('/api/miaoda/runtime/apicenter/source/proxy/iragtextToImageiiVMkBQMEHfZ6rd', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-App-Id': APP_ID
+        },
+        body: JSON.stringify({ prompt })
+      });
+
+      const result = await response.json();
+
+      if (result.status !== 0) {
+        throw new Error(result.msg || '提交封面生成任务失败');
+      }
+
+      const taskId = result.data.task_id;
+      addLog(`✅ 任务提交成功，任务ID: ${taskId}`, 'success');
+      return taskId;
+    }
+
+    async function queryCoverResult(taskId) {
+      const response = await fetch('/api/miaoda/runtime/apicenter/source/proxy/iraggetImgjWUTzny87hoV6fSaYzr2Rj', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-App-Id': APP_ID
+        },
+        body: JSON.stringify({ task_id: taskId })
+      });
+
+      const result = await response.json();
+
+      if (result.status !== 0) {
+        throw new Error(result.msg || '查询封面生成结果失败');
+      }
+
+      return result.data;
+    }
+
+    async function pollCoverResult(taskId) {
+      const maxAttempts = 30;
+      const pollInterval = 3000;
+
+      addLog('⏳ 开始轮询任务结果...', 'info');
+
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        const data = await queryCoverResult(taskId);
+
+        const taskStatus = data.task_status;
+        const progress = Math.round((data.task_progress_detail || 0) * 100);
+
+        addLog(`🔄 第${attempt + 1}次查询，状态: ${taskStatus}, 进度: ${progress}%`, 'info');
+
+        if (taskStatus === 'SUCCESS') {
+          const subTaskList = data.sub_task_result_list || [];
+          if (subTaskList.length > 0) {
+            const firstSubTask = subTaskList[0];
+            const finalImageList = firstSubTask.final_image_list || [];
+            if (finalImageList.length > 0) {
+              const imageUrl = finalImageList[0].img_url;
+              addLog('✅ 封面生成成功！', 'success');
+              addLog(`图片URL: ${imageUrl}`, 'success');
+              return imageUrl;
+            }
+          }
+          throw new Error('封面生成完成但未找到图片');
+        } else if (taskStatus === 'FAILED') {
+          throw new Error('封面生成失败');
+        }
+
+        await new Promise(resolve => setTimeout(resolve, pollInterval));
+      }
+
+      throw new Error('封面生成超时，请稍后重试');
+    }
+
+    async function generateCover() {
+      const btn = document.getElementById('generateBtn');
+      const resultDiv = document.getElementById('result');
+      const log = document.getElementById('log');
+
+      try {
+        btn.disabled = true;
+        btn.textContent = '生成中...';
+        log.innerHTML = '';
+        resultDiv.style.display = 'none';
+
+        addLog('🚀 开始生成小说封面...', 'info');
+
+        // 1. 提交任务
+        const taskId = await submitCoverTask(PROMPT);
+
+        // 2. 轮询结果
+        const imageUrl = await pollCoverResult(taskId);
+
+        // 3. 显示结果
+        document.getElementById('imageUrl').textContent = imageUrl;
+        document.getElementById('coverImage').src = imageUrl;
+        document.getElementById('sqlCode').textContent = 
+          `UPDATE novels SET novel_thumb = '${imageUrl}', updated_at = NOW() WHERE id = '${NOVEL_ID}';`;
+        resultDiv.style.display = 'block';
+
+        addLog('🎉 封面生成完成！请复制上面的SQL语句到数据库执行', 'success');
+
+      } catch (error) {
+        addLog(`❌ 封面生成失败: ${error.message}`, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '重新生成封面';
+      }
+    }
+  </script>
+</body>
+</html>

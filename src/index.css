@@ -1,0 +1,598 @@
+/* stylelint-disable */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 番茄小说风格设计系统 */
+
+@layer base {
+  :root {
+    /* 以#FF5724为核心的配色方案 */
+    --background: 0 0% 100%; /* 纯白背景 */
+    --foreground: 0 0% 15%; /* #262626 深灰文本 */
+
+    --card: 0 0% 100%; /* 白色卡片 */
+    --card-foreground: 0 0% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 15%;
+
+    /* 主色调：#FF5724 橙红色系 */
+    --primary: 14 100% 57%; /* #FF5724 主橙红 */
+    --primary-foreground: 0 0% 100%;
+
+    /* 辅助色：基于#FF5724的色彩变化 */
+    --secondary: 14 20% 96%; /* #FBF5F3 浅橙背景 */
+    --secondary-foreground: 14 100% 25%; /* #7F2B12 深橙文字 */
+
+    --muted: 14 20% 96%; /* #FBF5F3 */
+    --muted-foreground: 0 0% 45%; /* #737373 中灰 */
+
+    /* 强调色：#FF5724的亮色变体 */
+    --accent: 14 100% 65%; /* #FF7A4D 亮橙 */
+    --accent-foreground: 0 0% 100%;
+
+    /* 错误提示 */
+    --destructive: 0 84% 60%; /* #F56565 */
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 14 30% 90%; /* #F2E6E1 橙色边框 */
+    --input: 14 30% 90%;
+    --ring: 14 100% 57%; /* #FF5724 */
+
+    /* 统一圆角 */
+    --radius: 0.5rem; /* 8px 圆角 */
+
+    --sidebar-background: 14 20% 98%; /* #FEFCFB */
+    --sidebar-foreground: 0 0% 15%;
+    --sidebar-primary: 14 100% 57%; /* #FF5724 */
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 14 20% 96%;
+    --sidebar-accent-foreground: 0 0% 15%;
+    --sidebar-border: 14 30% 90%;
+    --sidebar-ring: 14 100% 57%;
+
+    /* #FF5724 扩展色彩系统 */
+    --orange-primary: 14 100% 57%; /* #FF5724 主色 */
+    --orange-light: 14 100% 70%; /* #FF8A5B 浅橙 */
+    --orange-lighter: 14 100% 85%; /* #FFCAB8 更浅橙 */
+    --orange-dark: 14 100% 45%; /* #E64A1F 深橙 */
+    --orange-darker: 14 100% 35%; /* #B3381A 更深橙 */
+    --orange-bg: 14 20% 98%; /* #FEFCFB 橙色背景 */
+    --orange-surface: 14 30% 95%; /* #F7EDE8 橙色表面 */
+  }
+
+  .dark {
+    --background: 0 0% 4%;
+    --foreground: 0 0% 95%;
+    --card: 0 0% 4%;
+    --card-foreground: 0 0% 95%;
+    --popover: 0 0% 4%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 14 100% 57%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 95%;
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 65%;
+    --accent: 25 95% 53%;
+    --accent-foreground: 0 0% 95%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 95%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 14 100% 57%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-white text-foreground;
+    /* 番茄小说风格字体 */
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+  }
+}
+
+/* #FF5724 主题工具类 */
+@layer utilities {
+  /* 自定义字体大小 */
+  .text-xs {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+  
+  .text-sm {
+    font-size: 0.9rem;
+    line-height: 1.5rem;
+  }
+  
+  .font-orange-title {
+    /* 标题字体 */
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+    font-weight: 600;
+  }
+  
+  .leading-orange {
+    line-height: 1.6;
+  }
+  
+  /* #FF5724 圆角 */
+  .rounded-orange {
+    border-radius: 8px;
+  }
+  
+  .rounded-orange-sm {
+    border-radius: 6px;
+  }
+  
+  /* #FF5724 过渡 */
+  .transition-orange {
+    transition: all 0.2s ease;
+  }
+  
+  /* #FF5724 间距 */
+  .space-y-orange-sm > * + * {
+    margin-top: 0.75rem; /* 12px */
+  }
+  
+  .space-y-orange-md > * + * {
+    margin-top: 1rem; /* 16px */
+  }
+  
+  .space-y-orange-lg > * + * {
+    margin-top: 1.5rem; /* 24px */
+  }
+  
+  .gap-orange-sm {
+    gap: 0.75rem; /* 12px */
+  }
+  
+  .gap-orange-md {
+    gap: 1rem; /* 16px */
+  }
+  
+  .px-orange-lg {
+    padding-left: 2rem; /* 32px */
+    padding-right: 2rem; /* 32px */
+  }
+  
+  .px-orange-md {
+    padding-left: 1rem; /* 16px */
+    padding-right: 1rem; /* 16px */
+  }
+  
+  .px-orange-xl {
+    padding-left: 3rem; /* 48px */
+    padding-right: 3rem; /* 48px */
+  }
+  
+  .py-orange-lg {
+    padding-top: 2rem; /* 32px */
+    padding-bottom: 2rem; /* 32px */
+  }
+  
+  .py-orange-md {
+    padding-top: 1rem; /* 16px */
+    padding-bottom: 1rem; /* 16px */
+  }
+}
+
+/* #FF5724 主题组件样式 */
+@layer components {
+  /* #FF5724 按钮 */
+  .btn-orange {
+    @apply bg-[#FF5724] text-white rounded-orange px-4 py-2 transition-orange font-medium;
+    box-shadow: 0 2px 4px rgba(255, 87, 36, 0.2);
+  }
+  
+  .btn-orange:hover {
+    @apply bg-[#E64A1F] transform -translate-y-0.5;
+    box-shadow: 0 4px 8px rgba(255, 87, 36, 0.3);
+  }
+  
+  .btn-orange-outline {
+    @apply border border-[#FF5724] text-[#FF5724] bg-white rounded-orange px-4 py-2 transition-orange font-medium;
+  }
+  
+  .btn-orange-outline:hover {
+    @apply bg-[#FF5724] text-white transform -translate-y-0.5;
+    box-shadow: 0 2px 4px rgba(255, 87, 36, 0.2);
+  }
+  
+  .btn-orange-secondary {
+    @apply bg-[#FBF5F3] text-[#7F2B12] rounded-orange px-4 py-2 transition-orange font-medium;
+  }
+  
+  .btn-orange-secondary:hover {
+    @apply bg-[#F7EDE8] transform -translate-y-0.5;
+  }
+  
+  /* #FF5724 卡片 */
+  .card-orange {
+    @apply rounded-orange border-0 bg-white overflow-hidden;
+    box-shadow: 0 2px 8px rgba(255, 87, 36, 0.06);
+  }
+  
+  .card-orange:hover {
+    box-shadow: 0 4px 12px rgba(255, 87, 36, 0.1);
+  }
+  
+  /* #FF5724 分割线 */
+  .divider-orange {
+    @apply border-0 border-t border-[#F2E6E1] my-4;
+  }
+  
+  /* #FF5724 错误提示 */
+  .error-orange {
+    @apply border border-[#F56565] bg-[#FED7D7] text-[#C53030] px-3 py-2 rounded-orange;
+  }
+  
+  /* #FF5724 输入框 */
+  .input-orange {
+    @apply rounded-orange border-[#F2E6E1] focus:border-[#FF5724] focus:ring-1 focus:ring-[#FF5724] transition-orange;
+  }
+  
+  /* #FF5724 标签页 */
+  .tabs-orange {
+    @apply rounded-orange bg-[#FBF5F3] p-1;
+  }
+  
+  .tab-orange {
+    @apply rounded-orange-sm px-3 py-2 text-sm font-medium transition-orange;
+  }
+  
+  .tab-orange-active {
+    @apply bg-white text-[#FF5724] shadow-sm;
+  }
+  
+  .tab-orange-inactive {
+    @apply text-[#737373] hover:text-[#7F2B12];
+  }
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .px-orange-lg {
+    @apply px-orange-md;
+  }
+  
+  .py-orange-lg {
+    @apply py-orange-md;
+  }
+}
+
+/* 小屏幕响应式调整 */
+@media (max-width: 460px) {
+  .px-orange-xl {
+    padding-left: 0.3rem;
+    padding-right: 0.3rem;
+  }
+  
+  .px-tomato-xl {
+    padding-left: 0rem;
+    padding-right: 0rem;
+  }
+  
+  .mt-16 {
+    margin-top: 0rem;
+  }
+  
+  .mt-8 {
+    margin-top: 0rem;
+  }
+}
+
+/* 自定义高度覆盖 */
+.h-9 {
+  height: 2.8rem;
+}
+
+/* 自定义圆角样式 */
+.rounded-full {
+  border-radius: 9999px;
+}
+
+/* 二次元漫画风格动画 */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-3deg); }
+  75% { transform: rotate(3deg); }
+}
+
+@keyframes sparkle {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+@keyframes bounce-gentle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes slide-in-cute {
+  from { 
+    opacity: 0; 
+    transform: translateX(-20px) scale(0.9); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateX(0) scale(1); 
+  }
+}
+
+@keyframes pop-in {
+  0% { 
+    opacity: 0; 
+    transform: scale(0.5); 
+  }
+  80% { 
+    transform: scale(1.1); 
+  }
+  100% { 
+    opacity: 1; 
+    transform: scale(1); 
+  }
+}
+
+/* 动画工具类 */
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-wiggle {
+  animation: wiggle 2s ease-in-out infinite;
+}
+
+.animate-sparkle {
+  animation: sparkle 1.5s ease-in-out infinite;
+}
+
+.animate-bounce-gentle {
+  animation: bounce-gentle 2s ease-in-out infinite;
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 4s linear infinite;
+}
+
+.animate-slide-in-cute {
+  animation: slide-in-cute 0.6s ease-out;
+}
+
+.animate-pop-in {
+  animation: pop-in 0.5s ease-out;
+}
+
+/* 漫画风格装饰类 */
+.comic-shadow {
+  box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.1);
+}
+
+.comic-border {
+  border: 3px solid currentColor;
+  border-radius: 15px;
+}
+
+.anime-gradient {
+  background: linear-gradient(135deg, #FF5724, #FF7A4D, #FFCAB8, #FF8A5B);
+  background-size: 400% 400%;
+  animation: gradient-shift 3s ease infinite;
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* #FF5724 主题装饰样式 */
+.orange-pattern {
+  background-image: 
+    radial-gradient(circle at 25% 25%, rgba(255, 87, 36, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(230, 74, 31, 0.1) 0%, transparent 50%);
+}
+
+.orange-wave {
+  background-image: 
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 10px,
+      rgba(255, 87, 36, 0.05) 10px,
+      rgba(255, 87, 36, 0.05) 20px
+    );
+}
+
+/* Z世代二次元风格 - #FF5724 主题 */
+.z-gen-gradient {
+  background: linear-gradient(135deg, #FF5724 0%, #FF7A4D 100%);
+}
+
+.anime-glow {
+  box-shadow: 
+    0 0 20px rgba(255, 87, 36, 0.3),
+    0 0 40px rgba(255, 122, 77, 0.2),
+    0 0 60px rgba(255, 202, 184, 0.1);
+}
+
+.neon-text {
+  text-shadow: 
+    0 0 5px #FF5724,
+    0 0 10px #FF5724,
+    0 0 15px #FF5724,
+    0 0 20px #FF5724;
+}
+
+/* 二次元按钮效果 - #FF5724 主题 */
+.anime-button {
+  background: linear-gradient(45deg, #FF5724, #E64A1F);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  position: relative;
+  overflow: hidden;
+}
+
+.anime-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transition: left 0.5s;
+}
+
+.anime-button:hover::before {
+  left: 100%;
+}
+
+/* 可爱卡片效果 - #FF5724 主题 */
+.kawaii-card {
+  background: linear-gradient(145deg, #ffffff, #FBF5F3);
+  border-radius: 20px;
+  box-shadow: 
+    20px 20px 60px rgba(255, 87, 36, 0.1),
+    -20px -20px 60px #ffffff;
+}
+
+/* 彩虹边框效果 - #FF5724 主题 */
+.rainbow-border {
+  border: 3px solid;
+  border-image: linear-gradient(45deg, #FF5724, #FF7A4D, #FFCAB8, #FF8A5B, #E64A1F, #B3381A) 1;
+  border-radius: 15px;
+}
+
+/* 3D词云球样式 - 简洁无背景 */
+.tagcloud-anime-style {
+  position: relative;
+}
+
+/* 词云球标签样式 */
+.tagcloud {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  user-select: none;
+}
+
+/* 隐藏 ChatUI-Agent-Waker 组件 */
+.ChatUI-Agent-Waker.runtime-agent-waker {
+  display: none !important;
+}
+
+/* Markdown 内容样式 */
+.markdown-content {
+  @apply text-foreground;
+}
+
+.markdown-content h1 {
+  @apply text-2xl font-bold mt-6 mb-4 text-[#FF5724];
+}
+
+.markdown-content h2 {
+  @apply text-xl font-bold mt-5 mb-3 text-[#E64A1F];
+}
+
+.markdown-content h3 {
+  @apply text-lg font-semibold mt-4 mb-2 text-[#FF7A4D];
+}
+
+.markdown-content h4 {
+  @apply text-base font-semibold mt-3 mb-2 text-[#FF8A5B];
+}
+
+.markdown-content h5,
+.markdown-content h6 {
+  @apply text-sm font-semibold mt-2 mb-1 text-[#FFCAB8];
+}
+
+.markdown-content p {
+  @apply my-3 leading-relaxed;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+  @apply my-3 ml-6;
+}
+
+.markdown-content ul {
+  @apply list-disc;
+}
+
+.markdown-content ol {
+  @apply list-decimal;
+}
+
+.markdown-content li {
+  @apply my-1;
+}
+
+.markdown-content blockquote {
+  @apply border-l-4 border-[#FF5724] pl-4 my-4 italic text-muted-foreground bg-[#FBF5F3] py-2 rounded-r;
+}
+
+.markdown-content code {
+  @apply bg-[#FBF5F3] text-[#E64A1F] px-1.5 py-0.5 rounded text-sm font-mono;
+}
+
+.markdown-content pre {
+  @apply bg-[#FBF5F3] p-4 rounded-lg my-4 overflow-x-auto;
+}
+
+.markdown-content pre code {
+  @apply bg-transparent p-0 text-sm;
+}
+
+.markdown-content a {
+  @apply text-[#FF5724] hover:text-[#E64A1F] underline transition-colors;
+}
+
+.markdown-content hr {
+  @apply my-6 border-[#F2E6E1];
+}
+
+.markdown-content table {
+  @apply w-full my-4 border-collapse;
+}
+
+.markdown-content th {
+  @apply bg-[#FBF5F3] text-[#7F2B12] font-semibold p-2 border border-[#F2E6E1];
+}
+
+.markdown-content td {
+  @apply p-2 border border-[#F2E6E1];
+}
+
+.markdown-content img {
+  @apply max-w-full h-auto rounded-lg my-4;
+}
+
+.markdown-content strong {
+  @apply font-bold text-[#FF5724];
+}
+
+.markdown-content em {
+  @apply italic;
+}
